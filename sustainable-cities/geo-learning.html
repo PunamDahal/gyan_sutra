@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+
+    <style>
+        .case-study {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .case-study img {
+            max-width: 100%;
+            border-radius: 5px;
+        }
+
+        #simulation {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        #simulation button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+
+        #simulation button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map" style="height: 500px; width: 100%;"></div>
+    <div id="case-studies"></div>
+    <div id="simulation">
+        <h2>Design Your Sustainable City</h2>
+        <button onclick="addGreenZone()">Add Green Zone</button>
+        <button onclick="addSolarPanel()">Add Solar Panels</button>
+    </div>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+    <script>
+        const map = L.map('map').setView([51.505, -0.09], 13); // Default location
+
+        // Add tile layer (e.g., OpenStreetMap)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        //cities
+        fetch('../data/cities.json')
+            .then(response => response.json())
+            .then(data => {
+                L.geoJSON(data, {
+                    onEachFeature: (feature, layer) => {
+                        layer.bindPopup(`<b>${feature.properties.name}</b><br>${feature.properties.description}`);
+                    }
+                }).addTo(map);
+            });
+
+        //case-tudies
+        fetch('../data/case-studies.json')
+            .then(response => response.json())
+            .then(studies => {
+                const caseStudiesContainer = document.getElementById('case-studies');
+                studies.forEach(study => {
+                    const card = document.createElement('div');
+                    card.className = 'case-study';
+                    card.innerHTML = `
+                <h3>${study.title}</h3>
+                <p>${study.description}</p>
+                <img src="${study.image}" alt="${study.title}" />
+            `;
+                    caseStudiesContainer.appendChild(card);
+                });
+            });
+        //simulations
+        function addGreenZone() {
+            L.circle([51.505, -0.09], { color: 'green', radius: 500 }).addTo(map)
+                .bindPopup("Green Zone Added!");
+        }
+
+        function addSolarPanel() {
+            L.marker([51.505, -0.08], {
+                icon: L.icon({
+                    iconUrl: 'assets/solar-panel-icon.png',
+                    iconSize: [30, 30]
+                })
+            }).addTo(map).bindPopup("Solar Panel Installed!");
+        }
+
+    </script>
+
+</body>
+
+</html>

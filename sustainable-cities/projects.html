@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Project Map</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+}
+
+#map-container {
+    display: flex;
+    flex-direction: row;
+    height: 70vh;
+}
+
+#map {
+    flex: 3;
+    height: 100%;
+}
+
+#project-details {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+    border-left: 1px solid #ddd;
+}
+
+#project-list {
+    padding: 20px;
+    background-color: #f8f8f8;
+    border-top: 1px solid #ddd;
+}
+
+#projects {
+    list-style: none;
+    padding: 0;
+}
+
+#projects li {
+    cursor: pointer;
+    padding: 10px;
+    border: 1px solid #ddd;
+    margin: 5px 0;
+    background-color: white;
+    transition: background-color 0.3s ease;
+}
+
+#projects li:hover {
+    background-color: #f0f0f0;
+}
+
+#details-container {
+    overflow-y: auto;
+    max-height: 60vh;
+}
+
+    </style>
+</head>
+<body>
+    <div id="map-container">
+        <div id="map"></div>
+        <div id="project-details">
+            <h2>Project Details</h2>
+            <div id="details-container"></div>
+        </div>
+    </div>
+    <div id="project-list">
+        <h2>Projects</h2>
+        <ul id="projects"></ul>
+    </div>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+document.addEventListener("DOMContentLoaded", () => {
+    const map = L.map('map').setView([39.8283, -98.5795], 4); // Centered on the USA
+
+    // Add tile layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    const projectsList = document.getElementById('projects');
+    const detailsContainer = document.getElementById('details-container');
+
+    // Fetch project data
+    fetch('../data/projects.json')
+        .then(response => response.json())
+        .then(data => {
+            const markers = {};
+            
+            // Populate project list and map markers
+            data.forEach(project => {
+                // Add to project list
+                const listItem = document.createElement('li');
+                listItem.textContent = project.name;
+                listItem.dataset.id = project.id;
+                projectsList.appendChild(listItem);
+
+                // Add map marker
+                const marker = L.marker(project.location)
+                    .bindPopup(`<b>${project.name}</b><br>${project.description}`)
+                    .addTo(map);
+
+                markers[project.id] = marker;
+
+                // Handle project click
+                listItem.addEventListener('click', () => {
+                    // Focus map on the selected project
+                    map.setView(project.location, 10);
+                    marker.openPopup();
+
+                    // Show details in the sidebar
+                    detailsContainer.innerHTML = `
+                        <h3>${project.name}</h3>
+                        <p>${project.description}</p>
+                        <ul>
+                            ${project.details.map(detail => `<li>${detail}</li>`).join('')}
+                        </ul>
+                    `;
+                });
+            });
+        });
+
+    // Infinite scrolling for project details
+    detailsContainer.addEventListener('scroll', () => {
+        if (detailsContainer.scrollTop + detailsContainer.clientHeight >= detailsContainer.scrollHeight) {
+            const loader = document.createElement('p');
+            loader.textContent = "Loading more details...";
+            detailsContainer.appendChild(loader);
+
+            // Simulate loading more data
+            setTimeout(() => {
+                loader.remove();
+                detailsContainer.innerHTML += `
+                    <ul>
+                        <li>Additional phase...</li>
+                        <li>More project info...</li>
+                    </ul>
+                `;
+            }, 1000);
+        }
+    });
+});
+
+const renewableEnergyLayer = L.layerGroup();
+const greenInfrastructureLayer = L.layerGroup();
+
+// Adding layers to the map
+L.control.layers(null, {
+    "Renewable Energy": renewableEnergyLayer,
+    "Green Infrastructure": greenInfrastructureLayer
+}).addTo(map);
+
+// Assign markers to categories
+data.features.forEach(project => {
+    const marker = L.marker(project.geometry.coordinates.reverse())
+        .bindPopup(`<b>${project.properties.name}</b><br>${project.properties.description}`);
+
+    if (project.properties.category === "Renewable Energy") {
+        renewableEnergyLayer.addLayer(marker);
+    } else if (project.properties.category === "Green Infrastructure") {
+        greenInfrastructureLayer.addLayer(marker);
+    }
+});
+
+marker.bindPopup(`
+    <b>${project.properties.name}</b><br>
+    <p>${project.properties.description}</p>
+    <a href="https://example.com/${project.id}" target="_blank">More Details</a>
+`);
+
+detailsContainer.addEventListener('scroll', () => {
+    if (detailsContainer.scrollTop + detailsContainer.clientHeight >= detailsContainer.scrollHeight) {
+        fetch('/api/project-details?page=2')
+            .then(response => response.json())
+            .then(data => {
+                data.details.forEach(detail => {
+                    const item = document.createElement('p');
+                    item.textContent = detail;
+                    detailsContainer.appendChild(item);
+                });
+            });
+    }
+});
+
+const greenIcon = L.icon({
+    iconUrl: 'images/green-icon.png',
+    iconSize: [32, 32]
+});
+
+L.marker([40.7128, -74.0060], { icon: greenIcon }).addTo(map);
+const drawnItems = new L.FeatureGroup();
+map.addLayer(drawnItems);
+
+const drawControl = new L.Control.Draw({
+    edit: {
+        featureGroup: drawnItems
+    }
+});
+map.addControl(drawControl);
+
+map.on(L.Draw.Event.CREATED, (e) => {
+    const layer = e.layer;
+    drawnItems.addLayer(layer);
+    alert("Shape created! Analyze the impact.");
+});
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Cities Projects</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            text-align: center;
+            padding: 20px;
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        #map {
+            height: 100vh;
+        }
+
+        .leaflet-popup-content {
+            width: 300px;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        header {
+    background-color: #007bff;
+    color: white;
+    padding: 1rem;
+    text-align: center;
+}
+
+main {
+    padding: 1rem;
+}
+
+#controls {
+    margin-bottom: 1rem;
+}
+
+#cityTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 2rem;
+}
+
+#cityTable th, #cityTable td {
+    border: 1px solid #ddd;
+    padding: 0.5rem;
+    text-align: center;
+}
+
+#cityTable th {
+    background-color: #007bff;
+    color: white;
+}
+
+#chart-container {
+    margin-top: 2rem;
+    text-align: center;
+}
+
+canvas {
+    max-width: 100%;
+}
+    </style>
+</head>
+<body>
+    <h1>Smart Cities Projects</h1>
+    <div id="map"></div>
+
+
+
+    <header>
+        <h1>Smart City Index</h1>
+    </header>
+
+    <main>
+        <section id="controls">
+            <label for="countryFilter">Filter by Country:</label>
+            <input type="text" id="countryFilter" placeholder="Type a country name">
+        </section>
+
+        <section id="data-display">
+            <table id="cityTable">
+                <thead>
+                    <tr>
+                        <th>City</th>
+                        <th>Country</th>
+                        <th>Smart Mobility</th>
+                        <th>Smart Environment</th>
+                        <th>Smart Government</th>
+                        <th>Smart Economy</th>
+                        <th>Smart People</th>
+                        <th>Smart Living</th>
+                        <th>Index</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Data rows populated via JavaScript -->
+                </tbody>
+            </table>
+        </section>
+
+        <section id="chart-container">
+            <canvas id="smartCityChart"></canvas>
+        </section>
+    </main>
+
+    <footer>
+        <p>Smart City Index Visualization</p>
+    </footer>
+
+    <script src="script.js"></script>
+    <!-- Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Script -->
+    <script>
+        // Initialize the map
+var map = L.map('map').setView([51.505, -0.09], 2); // Default global view
+
+// Add OpenStreetMap tiles
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+}).addTo(map);
+
+// Predefined coordinates for cities
+const cityCoordinates = {
+    Edmonton: [53.5461, -113.4938],
+    NewYork: [40.7128, -74.0060],
+    London: [51.5074, -0.1278],
+    Tokyo: [35.6895, 139.6917],
+    Paris: [48.8566, 2.3522],
+    Berlin: [52.5200, 13.4050]
+    // Add more cities as needed
+};
+
+// Function to process and display city data on the map
+function processCityData(data) {
+    data.forEach(function(city) {
+        const cityName = city.City.trim();
+        const coords = cityCoordinates[cityName.replace(" ", "")]; // Match city name to coordinates
+        if (coords) {
+            const sustainabilityRank = city.SmartCity_Index || "N/A";
+            const description = `
+                <p>Smart Mobility: ${city.Smart_Mobility || "N/A"}</p>
+                <p>Smart Environment: ${city.Smart_Environment || "N/A"}</p>
+                <p>Smart Government: ${city.Smart_Government || "N/A"}</p>
+                <p>Smart Economy: ${city.Smart_Economy || "N/A"}</p>
+                <p>Smart People: ${city.Smart_People || "N/A"}</p>
+                <p>Smart Living: ${city.Smart_Living || "N/A"}</p>
+            `;
+
+            L.marker(coords)
+                .addTo(map)
+                .bindPopup(`
+                    <h3>${cityName}</h3>
+                    <p><strong>Country:</strong> ${city.Country}</p>
+                    <p><strong>SmartCity Index:</strong> ${sustainabilityRank}</p>
+                    ${description}
+                `);
+        } else {
+            console.warn(`No coordinates found for city: ${cityName}`);
+        }
+    });
+}
+
+
+// Function to load CSV file and parse data
+function loadCSVData() {
+    Papa.parse("cities.csv", {
+        download: true,
+        header: true,
+        complete: function(results) {
+            console.log("CSV Data Loaded", results);
+            processCityData(results.data);
+        },
+        error: function(error) {
+            console.error("Error loading CSV", error);
+        }
+    });
+}
+
+// Load data on page load
+loadCSVData();
+
+const data = [
+    { Id: 1, City: "Oslo", Country: "Norway", Smart_Mobility: 6480, Smart_Environment: 6512, Smart_Government: 7516, Smart_Economy: 4565, Smart_People: 8618, Smart_Living: 9090, SmartCity_Index: 7138 },
+    { Id: 2, City: "Bergen", Country: "Norway", Smart_Mobility: 7097, Smart_Environment: 6876, Smart_Government: 7350, Smart_Economy: 4905, Smart_People: 8050, Smart_Living: 9090, SmartCity_Index: 7296 },
+    { Id: 3, City: "Amsterdam", Country: "Netherlands", Smart_Mobility: 7540, Smart_Environment: 5558, Smart_Government: 8528, Smart_Economy: 8095, Smart_People: 7098, Smart_Living: 7280, SmartCity_Index: 7311 },
+    // Add more rows here...
+];
+
+// Populate Table
+const tableBody = document.querySelector("#cityTable tbody");
+data.forEach(item => {
+    const row = `<tr>
+        <td>${item.City}</td>
+        <td>${item.Country}</td>
+        <td>${item.Smart_Mobility}</td>
+        <td>${item.Smart_Environment}</td>
+        <td>${item.Smart_Government}</td>
+        <td>${item.Smart_Economy}</td>
+        <td>${item.Smart_People}</td>
+        <td>${item.Smart_Living}</td>
+        <td>${item.SmartCity_Index}</td>
+    </tr>`;
+    tableBody.insertAdjacentHTML('beforeend', row);
+});
+
+// Filter Functionality
+document.querySelector("#countryFilter").addEventListener("input", function () {
+    const filter = this.value.toLowerCase();
+    const rows = tableBody.querySelectorAll("tr");
+    rows.forEach(row => {
+        const country = row.children[1].textContent.toLowerCase();
+        row.style.display = country.includes(filter) ? "" : "none";
+    });
+});
+
+// Chart Visualization
+const ctx = document.getElementById('smartCityChart').getContext('2d');
+const chartData = data.slice(0, 10); // Display top 10 cities for chart
+new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: chartData.map(item => item.City),
+        datasets: [{
+            label: 'Smart City Index',
+            data: chartData.map(item => item.SmartCity_Index),
+            backgroundColor: 'rgba(0, 123, 255, 0.7)',
+            borderColor: 'rgba(0, 123, 255, 1)',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+
+
+    </script>
+</body>
+</html>
