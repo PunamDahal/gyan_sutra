@@ -1,0 +1,12 @@
+[
+    {
+        "title": "Copenhagen Cycling Infrastructure",
+        "description": "50% of all commutes in Copenhagen are done on bicycles.",
+        "image": "../assets/copenhegen.jpg"
+    },
+    {
+        "title": "Singapore Smart Water Management",
+        "description": "Singapore recycles 40% of its water using advanced technologies.",
+        "image": "assets/singapore.jpg"
+    }
+]

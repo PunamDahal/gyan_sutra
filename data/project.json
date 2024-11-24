@@ -1,0 +1,32 @@
+
+{
+    "type": "FeatureCollection",
+    "features": [
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Green City Initiative",
+                "description": "A project to create green zones in urban areas.",
+                "details": ["Phase 1: Tree plantation", "Phase 2: Community gardens"],
+                "category": "Green Infrastructure"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [-74.0060, 40.7128]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Solar Panel Installation",
+                "description": "Large-scale solar installations in residential areas.",
+                "details": ["Phase 1: Rooftop panels", "Phase 2: Community grids"],
+                "category": "Renewable Energy"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [-118.2437, 34.0522]
+            }
+        }
+    ]
+}

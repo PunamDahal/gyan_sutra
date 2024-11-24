@@ -1,0 +1,27 @@
+{
+    "type": "FeatureCollection",
+    "features": [
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Copenhagen",
+                "description": "Known for cycling infrastructure and renewable energy usage."
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [12.5683, 55.6761]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Singapore",
+                "description": "Pioneered smart water management and green buildings."
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [103.8198, 1.3521]
+            }
+        }
+    ]
+}
